@@ -1,0 +1,7 @@
+Siempre hay q activar el entorno virtual, sino no va a funcionar 
+
+.venv\Scripts\activate 
+
+
+Correr flask 
+flask --app Hello --debug run
