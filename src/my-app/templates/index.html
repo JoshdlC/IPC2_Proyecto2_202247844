@@ -1,14 +1,22 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Mi sitio web</title>
-  </head>
-  <body>
+{% extends "base.html" %}
+{% block title %} Página de inicio {% endblock %}
+
+{% block content %}
     <h1>Bievenidos!</h1>
     {% if name %}
-    <p>Hola {{ name }}</p>
+    <p>Hola {{ name | upper }}</p>
     {% else %}
     <p>Hola desconocido</p>
     {% endif %}
-  </body>
-</html>
+
+    <h2>Lista de amigos</h2>
+    <ul>
+      {% for friend in friends | reverse %}
+        <li>{{ friend }}</li>
+      {% endfor %}
+    </ul>
+
+    <p> La fecha de hoy es: {{date | today}}</p>
+    <p>La frase repetida es: {{repeat("Hola ", 3) }}</p>
+
+{% endblock %}
