@@ -2,21 +2,33 @@
 {% block title %} Página de inicio {% endblock %}
 
 {% block content %}
-    <h1>Bievenidos!</h1>
-    {% if name %}
-    <p>Hola {{ name | upper }}</p>
-    {% else %}
-    <p>Hola desconocido</p>
-    {% endif %}
+    <h1>Inicio</h1>
+    <div>
+        {% if name %}
+      <p>Hola {{ name | upper }}</p>
+      {% else %}
+      <p>Bienvenido usuario</p>
+      {% endif %}
+      <!-- <h2>Lista de amigos</h2>
+      <ul>
+        {% for friend in friends | reverse %}
+          <li>{{ friend }}</li>
+        {% endfor %}
+      </ul> -->
 
-    <h2>Lista de amigos</h2>
-    <ul>
-      {% for friend in friends | reverse %}
-        <li>{{ friend }}</li>
-      {% endfor %}
-    </ul>
+      <p> La fecha de hoy es {{date | today}}</p>
+      <!-- <p>La frase repetida es: {{repeat("Hola ", 3) }}</p> -->
 
-    <p> La fecha de hoy es: {{date | today}}</p>
-    <p>La frase repetida es: {{repeat("Hola ", 3) }}</p>
+      <p> Bienvenido a nuestro sistema de simulación de ensamblado de productos</p>
+      <br>
+
+      <button onclick="window.location.href='/archivo'">Cargar archivo</button>
+      <button onclick="window.location.href='/reportes'">Ver reportes</button>
+    </div>
+    
+    <br><br><br>
+    <img src="/static/img/maquinaEnsambladora.png" alt="Máquina ensambladora" width="200" height="200">
+
+    
 
 {% endblock %}

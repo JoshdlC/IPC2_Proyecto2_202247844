@@ -6,12 +6,12 @@
   </head>
   <body>
     <nav>
-        <ul>
-            <li><a href="{{ url_for('index')}}">Inicio</a></li>
-            <li><a href="{{ url_for('hello')}}">Hola</a></li>
-            <li><a href="{{ url_for('code', code = 'print(code)')}}">Code</a></li>
-            <li><a href="{{ url_for('register')}} ">Registrar usuario</a></li>
-        </ul>
+        
+          <a href="{{ url_for('index')}}">Inicio</a>
+          <a href="{{ url_for('archivo')}}">Archivo</a>
+          <a href="{{ url_for('reportes')}}">Reportes</a>
+          <a href="{{ url_for('register')}} ">Registrar usuario</a>
+        
     </nav>
     {% block content%}
 

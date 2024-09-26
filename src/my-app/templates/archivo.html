@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %} Registrar usuario {% endblock %}
+
+{% block content %}
+    <h1> Cargar archivo</h1>
+
+    <form action="/archivo" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <input type="submit" value="Cargar archivo">
+    </form>
+
+    {% if maquinas %}
+        <h2>Listado</h2>
+        
+        <ul>
+            {% for maquina in maquinas %}
+                <li>
+                    <h3>{{ maquina.nombre }}</h3>
+                    <p>Líneas de producción: {{ maquina.lineas }}</p>
+                    <p>Cantidad de componentes: {{ maquina.componentes }}</p>
+                    <p>Tiempo de ensamblaje: {{ maquina.tiempo }} minutos</p>
+                    <h4>Productos:</h4>
+                    <ul>
+                        {% for producto in maquina.productos %}
+                            <li>
+                                <strong>{{ producto.nombre }}</strong>: {{ producto.elaboracion }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+
+    {% endif %}
+
+{% endblock %}
