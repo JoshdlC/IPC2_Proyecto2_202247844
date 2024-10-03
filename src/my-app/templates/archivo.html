@@ -1,33 +1,31 @@
 {% extends "base.html" %}
-{% block title %} Registrar usuario {% endblock %}
+{% block title %} Cargar archivo {% endblock %}
 
 {% block content %}
     <h1> Cargar archivo</h1>
+    
+    {% if mensaje %}
+        <div class="alert">{{ mensaje }}</div>
+    {% endif %}
 
-    <form action="/archivo" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" id="file">
-        <input type="submit" value="Cargar archivo">
-    </form>
+    <div id="cargar-xml-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Cargar Archivo XML</h2>
+            <form action="{{ url_for('archivo') }}" method="post" enctype="multipart/form-data" class="navbar-form">
+                <label for="file" class="navbar-label">Cargar XML:</label>
+                <input type="file" id="file" name="file" required class="navbar-input">
+                <button type="submit" class="navbar-button">Cargar</button>
+            </form>
+        </div>
+    </div>
 
     {% if maquinas %}
         <h2>Listado</h2>
         
         <ul>
             {% for maquina in maquinas %}
-                <li>
-                    <h3>{{ maquina.nombre }}</h3>
-                    <p>Líneas de producción: {{ maquina.lineas }}</p>
-                    <p>Cantidad de componentes: {{ maquina.componentes }}</p>
-                    <p>Tiempo de ensamblaje: {{ maquina.tiempo }} minutos</p>
-                    <h4>Productos:</h4>
-                    <ul>
-                        {% for producto in maquina.productos %}
-                            <li>
-                                <strong>{{ producto.nombre }}</strong>: {{ producto.elaboracion }}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </li>
+                <li>{{ maquina.nombre }}</li>
             {% endfor %}
         </ul>
 

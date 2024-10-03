@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Mi sitio web - {% block title %}{% endblock %}</title>
+    <title>  {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="static\img\Usac_logo.png"
   </head>
   <body>
     <nav>
@@ -11,7 +12,8 @@
           <a href="{{ url_for('archivo')}}">Archivo</a>
           <a href="{{ url_for('reportes')}}">Reportes</a>
           <a href="{{ url_for('register')}} ">Registrar usuario</a>
-        
+
+          
     </nav>
     {% block content%}
 

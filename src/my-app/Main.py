@@ -1,15 +1,25 @@
 from flask import Flask, render_template, url_for, request
 import xml.etree.ElementTree as ET
 import os
+from werkzeug.utils import secure_filename
+
 from listaEnlazada import ListaEnlazada
+from Maquina import Maquina
+from Producto import Producto
+
 
 app = Flask(__name__)
 app.config.from_mapping(
     SECRET_KEY = 'dev'
 )
 
-maquinas = ListaEnlazada()
+maquinasGlobal = ListaEnlazada()
 
+def cargarArchivo(filePath):
+    arbol = ET.parse(filePath)
+    root = arbol.getroot()
+    print("Se cargo el archivo")            
+    
 
 #* Filtros 
 @app.add_template_filter
@@ -20,13 +30,9 @@ def today(date):
 def repeat(text, times):
     return text * times
 
-# @app.add_template_global(repeat, 'repeat')
-
-
-
 from datetime import datetime
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     print(url_for('index'))
     print(url_for('hello', name='Josue', age=21))
@@ -101,53 +107,29 @@ def reportes():
 
 @app.route('/archivo', methods=['GET', 'POST'])
 def archivo():
-    global maquinas
+    global maquinasGlobal
+    mensaje = None
     
+    # * Crear carpeta para guardar los archivos
+    if not os.path.exists('uploads'):
+        os.makedirs('uploads')
+        
+        
     if request.method == 'POST':
         # Obtener los archivos cargados
         files = request.files.getlist('file')
 
         for file in files:
             if file:
-                # Guardar el archivo en un lugar temporal
-                file_path = os.path.join('uploads', file.filename)
-                file.save(file_path)
+                fileName = secure_filename(file.filename)
+                filePath = os.path.join('uploads', fileName)
+                file.save(filePath)
                 
-                # Parsear el archivo XML
-                arbol = ET.parse(file_path)
-                root = arbol.getroot()
+                cargarArchivo(filePath)
+                mensaje = "Archivo cargado exitosamente."
+
                 
-                for maquina in root.findall('Maquina'):
-                    nombre_maquina = maquina.find('NombreMaquina').text
-                    cantidad_lineas = int(maquina.find('CantidadLineasProduccion').text)
-                    cantidad_componentes = int(maquina.find('CantidadComponentes').text)
-                    tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
-
-                    # Verificar si la máquina ya existe
-                    maquina_existente = next((m for m in maquinas if m['nombre'] == nombre_maquina), None)
-
-                    if maquina_existente:
-                        # Actualizar la máquina existente
-                        maquina_existente['lineas'] += cantidad_lineas
-                        maquina_existente['componentes'] += cantidad_componentes
-                        maquina_existente['tiempo'] = max(maquina_existente['tiempo'], tiempo_ensamblaje)
-                    else:
-                        # Crear una nueva máquina
-                        nueva_maquina = {
-                            'nombre': nombre_maquina,
-                            'lineas': cantidad_lineas,
-                            'componentes': cantidad_componentes,
-                            'tiempo': tiempo_ensamblaje,
-                            'productos': []
-                        }
-                        maquinas.append(nueva_maquina)
-
-                    # Añadir productos
-                    for producto in maquina.find('ListadoProductos'):
-                        nombre_producto = producto.find('nombre').text
-                        elaboracion = producto.find('elaboracion').text.strip()
-                        nueva_maquina['productos'].append({'nombre': nombre_producto, 'elaboracion': elaboracion})
 
 
 
-    return render_template('archivo.html', maquinas = maquinas)
+    return render_template('archivo.html', maquinas = maquinasGlobal, mensaje = mensaje)
