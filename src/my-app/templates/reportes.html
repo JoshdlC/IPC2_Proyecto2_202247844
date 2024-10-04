@@ -70,10 +70,7 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <!-- Botón para generar el reporte HTML -->
-            <form action="{{ url_for('reporteEnHtml', producto=producto_nombre) }}" method="get">
-                <button type="submit">Reporte HTML</button>
-            </form>
+            
         {% endfor %}
     </section>
     {% endif %}
