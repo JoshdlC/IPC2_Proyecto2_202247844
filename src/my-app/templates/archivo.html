@@ -14,7 +14,7 @@
             <h2>Cargar Archivo XML</h2>
             <form action="{{ url_for('archivo') }}" method="post" enctype="multipart/form-data" class="navbar-form">
                 <label for="file" class="navbar-label">Cargar XML:</label>
-                <input type="file" id="file" name="file" required class="navbar-input">
+                <input type="file" id="file" name="file" required class="navbar-input" >
                 <button type="submit" class="navbar-button">Cargar</button>
             </form>
         </div>
@@ -28,6 +28,11 @@
                 <li>{{ maquina.nombre }}</li>
             {% endfor %}
         </ul>
+
+        <button onclick="window.location.href='/reportes'">Ver reportes</button>
+
+
+        
 
     {% endif %}
 

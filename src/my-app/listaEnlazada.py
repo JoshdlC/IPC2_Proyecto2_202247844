@@ -10,14 +10,13 @@ class ListaEnlazada:
 
     def append(self, data):
         new_node = Node(data)
-        if not self.cabeza:
-            self.cabeza = new_node
+        if not self.head:
+            self.head = new_node
         else:
-            actual = self.cabeza
-            while actual.siguiente:
-                actual = actual.siguiente
-            actual.siguiente = new_node
-        self._longitud += 1
+            actual = self.head
+            while actual.next:
+                actual = actual.next
+            actual.next = new_node
 
     def obtener(self, index):
         current = self.head
@@ -31,7 +30,12 @@ class ListaEnlazada:
         return None
     
     def longitud(self):
-        return self._longitud
+        current = self.head
+        contador = 0
+        while current:
+            contador += 1
+            current = current.next
+        return contador
     
     def __iter__(self):
         current = self.head
@@ -39,4 +43,27 @@ class ListaEnlazada:
             yield current.data
             current = current.next
 
+    def largo(self):
+        if not self.head:
+            return 0
+        
+        largo = 0
+        current = self.head
+        
+        while True:
+            largo += 1
+            current = current.next
+            if current == self.head:
+                break
+            
+        return largo
+    def actualizar(self, index, data):
+        current = self.head
+        contador = 0
+        while current:
+            if contador == index:
+                current.data = data
+                return
+            contador += 1
+            current = current.next
 

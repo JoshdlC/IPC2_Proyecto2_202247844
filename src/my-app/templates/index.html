@@ -27,7 +27,19 @@
     </div>
     
     <br><br><br>
-    <img src="/static/img/maquinaEnsambladora.png" alt="Máquina ensambladora" width="200" height="200">
+
+    {% if maquinas and maquinas.head != None %}
+        <h2>Maquinas</h2>
+        <ul>
+            {% for maquina in maquinas %}
+                <li>{{ maquina.nombre }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay maquinas registradas</p>
+        <img src="/static/img/maquinaEnsambladora.png" alt="Máquina ensambladora" width="200" height="200">
+    {% endif %}
+    
 
     
 

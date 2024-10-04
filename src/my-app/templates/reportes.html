@@ -4,4 +4,82 @@
 {% block content %}
 
     <h1>Reportes</h1>
+
+    {% if maquinas %}
+        <h2>Listado de Máquinas</h2>
+        <ul>
+            {% for maquina in maquinas %}
+                <li>{{ maquina.nombre }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Selecciona una máquina para ver productos</h2>
+        <form action="{{ url_for('reportes') }}" method="post">
+            <label for="maquina">Máquina:</label>
+            <select name="maquina" id="maquina">
+                {% for maquina in maquinas %}
+                    <option value="{{ maquina.nombre }}" {% if maquina.nombre == maquinaSeleccionada %}selected{% endif %}>{{ maquina.nombre }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Ver productos</button>
+        </form>
+
+        {% if maquinaSeleccionada and productos %}
+            <h3>Productos de la máquina seleccionada</h3>
+            <form action="{{ url_for('producto_seleccionado')}}" method="post">
+                <label for="producto">Producto:</label>
+                <select name="producto" id="producto">
+                    {% for producto in productos %}
+                        <option value="{{ producto.nombre }}">{{ producto.nombre }}</option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}"> 
+                <label for="tiempo">Tiempo:</label>
+                <input type="number" name="tiempo" id="tiempo" required>
+                <button type="submit">Seleccionar producto</button>
+            </form>
+        {% elif maquinaSeleccionada %}
+            <p>No hay productos asociados a esta máquina.</p>
+        {% endif %}
+        
+        {% if tablasEnsamblaje %}
+        <section id="tablasEnsamblaje">
+        <h2>Tablas de Ensamblaje</h2>
+        {% for producto_nombre, tabla in tablasEnsamblaje %}
+            <h3>Producto: {{ producto_nombre }}</h3>
+            <table id="tablaEnsamblaje">
+                <thead>
+                    <tr>
+                        <th>Tiempo</th>
+                        {% if tabla.cabeza %}
+                            {% set primera_fila = tabla.cabeza.dato %}
+                            {% for i in range(primera_fila.lineas.longitud()) %}
+                                <th>Línea de Ensamblaje {{ i + 1 }}</th>
+                            {% endfor %}
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in tabla %}
+                        <tr>
+                            <td>{{ fila.dato }}</td>
+                            {% for celda in fila.lineas %}
+                                <td>{{ celda }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <!-- Botón para generar el reporte HTML -->
+            <form action="{{ url_for('reporteEnHtml', producto=producto_nombre) }}" method="get">
+                <button type="submit">Reporte HTML</button>
+            </form>
+        {% endfor %}
+    </section>
+    {% endif %}
+    
+    {% else %}
+        <p>No hay máquinas registradas.</p>
+    {% endif %} 
+
 {% endblock %}
