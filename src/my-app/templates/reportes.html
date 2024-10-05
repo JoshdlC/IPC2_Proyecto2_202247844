@@ -79,16 +79,8 @@
                     </table>
 
                     <!-- ! Boton para generar HTML -->
-                    <form action="{{ url_for('reporteProductos')  }}" method="GET" id="generar_html_form">
-                        <button type="submit">Generar HTML</button>
-                    </form>
-
-                    <h2>Gráfico de Graphviz</h2>
-                    <form action="{{ url_for('generarTda')}}" method="get">
-                        <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}">
-                        <input type="hidden" name="producto" value="{{producto_seleccionado_form}}">
-                        <button type="submit">Generar TDA</button>
-
+                    <form action="{{ url_for('reporteProductos', productoSeleccionado=productoNombre) }}" method="get" target="_blank">
+                        <button type="submit">Reporte HTML</button>
                     </form>
                     
                 {% endfor %}

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, session
+from flask import Flask, render_template, url_for, request, redirect, session, render_template_string   
 import xml.etree.ElementTree as ET
 import os
 import graphviz
@@ -545,7 +545,7 @@ def producto_seleccionado():
     #* Agregar la tabla de ensamblaje a la lista de tablas
     tablasEnsamblaje.append((productoNombre, resultados))
 
-    # Serializar los resultados y almacenarlos en la sesión
+    #* Serializa los resultados y almacenarlos en la sesión
     session['resultados'] = serializarLista(resultados)
 
     print("Simulación completada. Resultados generados.")
@@ -553,27 +553,131 @@ def producto_seleccionado():
     
     
     
-@app.route('/reporteProductos', methods=['GET'])
-def reporteProductos():
-    if request.method == 'POST':
-        #* se procesa el formulario
-        maquinaSeleccionada = request.form.get('maquina')
-        productoSeleccionado = request.form.get('producto')
-        
-        
+@app.route('/reporteProductos/<productoSeleccionado>', methods=['GET'])
+def reporteProductos(productoSeleccionado):
+    
+    print(f"Producto seleccionado: {productoSeleccionado}")
 
-        return render_template('reporteProductos.html', maquinas=maquinasGlobal, 
-                               maquinaSeleccionada=maquinaSeleccionada, 
-                               productos=productoSeleccionado, 
-                               tablasEnsamblaje=tablasEnsamblaje)
+    # Inicializa 'html_content' para asegurarte de que siempre esté definido
+    html_content = ""
 
-    return render_template('reportes.html', maquinas=maquinasGlobal)
+    for nombreProd, resultados in tablasEnsamblaje:
+        if nombreProd == productoSeleccionado:
+            # Genera el contenido HTML
+            html_content = f"""
+            <html>
+            <head>
+                <title>Reporte de Ensamblaje</title>
+                <style>
+                    body {{
+                        font-family: 'Helvetica Neue', Arial, sans-serif;
+                        background-color: #f4f7f6;
+                        color: #333;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: auto;
+                        margin: 0;
+                    }}
+                    .container {{
+                        background-color: #ffffff;
+                        padding: 40px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        max-width: 1000px;
+                        width: 100%;
+                        margin: 20px;
+                        height: auto;
+                    }}
+                    h1 {{
+                        text-align: center;
+                        color: #2c3e50;
+                        font-size: 26px;
+                        margin-top: 30px;
+                        margin-bottom: 30px;
+                    }}
+                    table {{
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                        font-size: 16px;
+                    }}
+                    th, td {{
+                        padding: 12px 15px;
+                        text-align: center;
+                        border-bottom: 1px solid #e1e1e1;
+                        border: 1px solid #e1e1e1;
+                        
+                    }}
+                    th {{
+                        background-color: #3498db;
+                        color: white;
+                        text-transform: uppercase;
+                        letter-spacing: 0.1em;
+                    }}
+                    tr:hover {{
+                        background-color: #e6f7ff;
+                    }}
+                    td {{
+                        color: #555;
+                    }}
+                    .no-data {{
+                        text-align: center;
+                        padding: 20px;
+                        font-size: 18px;
+                        color: #999;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>Reporte de Ensamblaje para el producto: {productoSeleccionado}</h1>
+                    <table>
+                        <tr><th>Tiempo</th>"""
+
+            # Si hay resultados, genera la tabla de ensamblaje
+            if resultados.head:
+                primeraFila = resultados.head.data
+                for i in range(primeraFila.lineas.longitud()):
+                    html_content += f"<th>Línea de Ensamblaje {i + 1}</th>"
+                html_content += "</tr>"
+
+                # Añadir filas de resultados del ensamblaje
+                current = resultados.head
+                while current:
+                    html_content += f"<tr><td>{current.data.data}</td>"
+                    for i in range(current.data.lineas.longitud()):
+                        html_content += f"<td>{current.data.lineas.obtener(i).data}</td>"
+                    html_content += "</tr>"
+                    current = current.next
+            else:
+                # Si no hay datos disponibles, agrega un mensaje de fin de tabla
+                html_content += """
+                <tr>
+                    <td colspan="100%">Fin de la tabla.</td>
+                </tr>"""
+
+            # Cerrar el HTML
+            html_content += """
+                    </table>
+                </div>
+            </body>
+            </html>
+            """
+            print (html_content)
+            # Devolver el HTML generado directamente
+            return render_template_string(html_content)
+
+    # Si no se encuentra el producto, mostrar una página de error
+    return "<h1>Producto no encontrado</h1>", 404
 
 
 @app.route('/generarTda', methods=['GET'])
 def generarTda():
     productoMaquina = request.args.get('maquina')
     productoNombre = request.args.get('producto')
+    
+    
     
     print(f"Producto seleccionado: {productoNombre} de la máquina {productoMaquina}")
     
