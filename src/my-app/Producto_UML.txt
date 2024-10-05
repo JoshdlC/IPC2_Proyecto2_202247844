@@ -1,0 +1,14 @@
+@startuml
+class Producto {
+    agregarComponentes()
+        nombre
+    componentes
+    tiempoTotal
+    __init__()
+}
+class Componente {
+        linea
+    numero
+    __init__()
+}
+@enduml
