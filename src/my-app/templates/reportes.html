@@ -84,15 +84,12 @@
                     </form>
                     
                 {% endfor %}
-                <!-- <section id="grafico">
-                    <h2>Gráfico de Graphviz</h2>
-                    <form action="{{ url_for('generarTda')}}" method="get">
+                <!-- ! Botón para generar XML -->
+                    <form action="{{ url_for('generarXml') }}" method="get">
                         <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}">
                         <input type="hidden" name="producto" value="{{ productoSeleccionado }}">
-                        <button type="submit">Generar TDA</button>
-
+                        <button type="submit">Generar XML</button>
                     </form>
-                </section> -->
             </section>
         {% endif %}
         

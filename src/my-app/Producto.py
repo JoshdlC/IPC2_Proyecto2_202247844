@@ -4,6 +4,7 @@ class Producto:
     def __init__(self, nombre):
         self.nombre = nombre
         self.componentes = ListaEnlazada()
+        self.tiempoTotal = 0
 
     def agregarComponentes(self, linea, numero):
         componente = Componente(linea, numero)

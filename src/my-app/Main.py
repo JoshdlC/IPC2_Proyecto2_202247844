@@ -1,8 +1,9 @@
-from flask import Flask, render_template, url_for, request, redirect, session, render_template_string   
+from flask import Flask, render_template, url_for, request, redirect, session, render_template_string, send_file, jsonify
 import xml.etree.ElementTree as ET
 import os
 import graphviz
 from werkzeug.utils import secure_filename
+
 
 from listaEnlazada import ListaEnlazada
 from Maquina import Maquina
@@ -181,7 +182,45 @@ def imprimirResultado(resultados):
             
         nodeMaquina = nodeMaquina.next
     
+def generarXmlSalida(maquinas):
+    salidaSimulacion = ET.Element("SalidaSimulacion")
+    
+    #* iterar sobre las máquinas
+    for maquina in maquinas:
+        maquinaElement = ET.SubElement(salidaSimulacion, "Maquina")
+        
+        #* agrega el nombre de la maquina
+        nombreElemento = ET.SubElement(maquinaElement, "Nombre")
+        nombreElemento.text = maquina.nombre
+        
+        #* crea el listado de productos
+        listadoProductosElemento = ET.SubElement(maquinaElement, "ListadoProductos")
+        
+        for producto in maquina.productos:
+            productoElemento = ET.SubElement(listadoProductosElemento, "Producto")
+            
+            #* agrega el nombre del producto
+            nombreProductoElemento = ET.SubElement(productoElemento, "Nombre")
+            nombreProductoElemento.text = producto.nombre
+            
+            #* agregar tiempo 
+            tiempoTotal = ET.SubElement(productoElemento, "TiempoTotal")
+            tiempoTotal.text = str(producto.tiempoTotal)
+            
+            elaboracionElemento = ET.SubElement(productoElemento, "Elaboracion")
+            
+            for componente in producto.componentes:
+                tiempoElemento = ET.SubElement(elaboracionElemento, "Tiempo", NoSegundo=str(componente.numero))
+                lineaElemento = ET.SubElement(tiempoElemento, "LineaEnsamblaje", NoLinea=str(componente.linea))
+                lineaElemento.text = f"Componente de línea {componente.linea} número {componente.numero}"
 
+                
+                
+
+    #* Crear un árbol de ElementTree y escribirlo a un archivo
+    tree = ET.ElementTree(salidaSimulacion)
+    tree.write("C:\\Users\\josue\\Documents\\IPC2\\IPC2_Proyecto2_202247844\\src\\my-app\\salida.xml", encoding="utf-8", xml_declaration=True)
+        
         
 
 #* Filtros 
@@ -727,3 +766,17 @@ def generarTda():
     
     return "No se encontró la máquina o el producto especificado.", 400
                     
+                    
+@app.route('/generarXml', methods=['GET'])
+def generarXml():
+    maquinas = maquinasGlobal
+    
+    xml_path =  os.path.join(os.getcwd(), 'C:\\Users\\josue\\Documents\\IPC2\\IPC2_Proyecto2_202247844\\src\\my-app\\salida.xml')
+    generarXmlSalida(maquinas)
+    
+    if os.path.exists(xml_path):
+        return send_file(xml_path, as_attachment=True, download_name="salida.xml")
+    else:
+        return jsonify({"error": "El archivo no fue encontrado"}), 404
+    
+    #* Devuelve el archivo XML generado ^^^^
