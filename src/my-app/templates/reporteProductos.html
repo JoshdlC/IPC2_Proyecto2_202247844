@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Reporte de {{ producto }}{% endblock %}
+
+{% block content %}
+    {% if resultados %}
+    <section id="simulacion">
+        <h2>Simulación del Producto: {{ productoSeleccionado }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tiempo (segundos)</th>
+                    {% for i in range(num_lineas) %}
+                        <th>Línea {{ i + 1 }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% set current = resultados.head %}
+                {% while current %}
+                    <tr>
+                        <td>{{ current.data.data }}</td>
+                        {% for linea in current.data.lineas %}
+                            <td>{{ linea }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% set current = current.next %}
+                {% endwhile %}
+            </tbody>
+        </table>
+    </section>
+    {% else %}
+    <p>No hay resultados de simulación disponibles.</p>
+    {% endif %}
+{% endblock %}

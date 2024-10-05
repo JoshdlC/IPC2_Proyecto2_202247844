@@ -26,57 +26,89 @@
 
         {% if maquinaSeleccionada and productos %}
             <h3>Productos de la máquina seleccionada</h3>
-            <form action="{{ url_for('producto_seleccionado')}}" method="post">
+            <form action="{{ url_for('producto_seleccionado')}}" method="POST" id="producto_seleccionado_form">
                 <label for="producto">Producto:</label>
                 <select name="producto" id="producto">
                     {% for producto in productos %}
-                        <option value="{{ producto.nombre }}">{{ producto.nombre }}</option>
+                        <option value="{{ producto.nombre }}" >{{ producto.nombre }}</option>
                     {% endfor %}
                 </select>
                 <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}"> 
                 <label for="tiempo">Tiempo:</label>
-                <input type="number" name="tiempo" id="tiempo" required>
-                <button type="submit">Seleccionar producto</button>
+                <input type="number" name="tiempo" id="tiempo" >
+                <button type="submit">Seleccionar y simular producto</button>
             </form>
         {% elif maquinaSeleccionada %}
             <p>No hay productos asociados a esta máquina.</p>
         {% endif %}
-        
+
+         <!-- * Aquí verificamos si se ha seleccionado un producto antes de mostrar las tablas -->
         {% if tablasEnsamblaje %}
-        <section id="tablasEnsamblaje">
-        <h2>Tablas de Ensamblaje</h2>
-        {% for producto_nombre, tabla in tablasEnsamblaje %}
-            <h3>Producto: {{ producto_nombre }}</h3>
-            <table id="tablaEnsamblaje">
-                <thead>
-                    <tr>
-                        <th>Tiempo</th>
-                        {% if tabla.cabeza %}
-                            {% set primera_fila = tabla.cabeza.dato %}
-                            {% for i in range(primera_fila.lineas.longitud()) %}
-                                <th>Línea de Ensamblaje {{ i + 1 }}</th>
+            <section id="tablasEnsamblaje">
+                <h2>Tablas de Ensamblaje</h2>
+                {% for productoNombre, tabla in tablasEnsamblaje %}
+                    <h3>Producto: {{ productoNombre }}</h3>
+                    <table id="tablaEnsamblaje">
+                        <thead>
+                            <tr>
+                                <th>Tiempo</th>
+                                {% if tabla.head %}
+                                    {% set primera_fila = tabla.head.data %}
+              
+                                        {% for i in range(primera_fila.longitud()) %}
+                                            <th>Línea de Ensamblaje {{ i + 1 }}</th>
+                                        {% endfor %}
+                                    
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for fila in tabla %}
+                                <tr>
+                                    <td>{{ fila.data }}</td>
+                                    {% if fila.lineas is iterable %}
+                                        {% for celda in fila.lineas %}
+                                            <td>{{ celda }}</td>
+                                        {% endfor %}
+                                    {% else %}
+                                        <td colspan="{{ primera_fila.longitud() }}">No hay datos disponibles</td>
+                                    {% endif %}
+                                </tr>
                             {% endfor %}
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for fila in tabla %}
-                        <tr>
-                            <td>{{ fila.dato }}</td>
-                            {% for celda in fila.lineas %}
-                                <td>{{ celda }}</td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </tbody>
+                    </table>
+
+                    <!-- ! Boton para generar HTML -->
+                    <form action="{{ url_for('reporteProductos')  }}" method="GET" id="generar_html_form">
+                        <button type="submit">Generar HTML</button>
+                    </form>
+
+                    <h2>Gráfico de Graphviz</h2>
+                    <form action="{{ url_for('generarTda')}}" method="get">
+                        <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}">
+                        <input type="hidden" name="producto" value="{{producto_seleccionado_form}}">
+                        <button type="submit">Generar TDA</button>
+
+                    </form>
+                    
+                {% endfor %}
+                <!-- <section id="grafico">
+                    <h2>Gráfico de Graphviz</h2>
+                    <form action="{{ url_for('generarTda')}}" method="get">
+                        <input type="hidden" name="maquina" value="{{ maquinaSeleccionada }}">
+                        <input type="hidden" name="producto" value="{{ productoSeleccionado }}">
+                        <button type="submit">Generar TDA</button>
+
+                    </form>
+                </section> -->
+            </section>
+        {% endif %}
+        
+        
             
-        {% endfor %}
-    </section>
-    {% endif %}
-    
     {% else %}
         <p>No hay máquinas registradas.</p>
     {% endif %} 
 
+   
 {% endblock %}

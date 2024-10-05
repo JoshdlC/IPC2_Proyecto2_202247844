@@ -24,10 +24,10 @@ class Resultado:
         self.lineas = lineas
         
     def longitud(self):
-        return len(self.lineas)
+        return self.lineas.longitud()   
     
     def __str__(self):
-        return self.dato + " " + str(self.lineas)
+        return self.data + " " + str(self.lineas)
     
     def __repr__(self):
         return self.__str__()

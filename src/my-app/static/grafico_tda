@@ -1,0 +1,43 @@
+// Grafico de TDA
+digraph {
+	"Mover brazo – componente 1" [label="Mover brazo – componente 1"]
+	"Mover brazo – componente 1" [label="Mover brazo – componente 1"]
+	"Mover brazo – componente 1" -> "Mover brazo – componente 1"
+	"Mover brazo – componente 1" [label="Mover brazo – componente 1"]
+	"Mover brazo – componente 1" -> "Mover brazo – componente 1"
+	"Mover brazo – componente 2" [label="Mover brazo – componente 2"]
+	"Mover brazo – componente 2" [label="Mover brazo – componente 2"]
+	"Mover brazo – componente 2" -> "Mover brazo – componente 2"
+	"Mover brazo – componente 2" [label="Mover brazo – componente 2"]
+	"Mover brazo – componente 2" -> "Mover brazo – componente 2"
+	"No hacer nada" [label="No hacer nada"]
+	"Mover brazo – componente 3" [label="Mover brazo – componente 3"]
+	"No hacer nada" -> "Mover brazo – componente 3"
+	"No hacer nada" [label="No hacer nada"]
+	"Mover brazo – componente 3" -> "No hacer nada"
+	"No hace nada" [label="No hace nada"]
+	"Ensamblar componente 3" [label="Ensamblar componente 3"]
+	"No hace nada" -> "Ensamblar componente 3"
+	"No hace nada" [label="No hace nada"]
+	"Ensamblar componente 3" -> "No hace nada"
+	"No hace nada" [label="No hace nada"]
+	"Ensamblar componente 3" [label="Ensamblar componente 3"]
+	"No hace nada" -> "Ensamblar componente 3"
+	"No hace nada" [label="No hace nada"]
+	"Ensamblar componente 3" -> "No hace nada"
+	"No hace nada" [label="No hace nada"]
+	"Mover brazo – componente 4" [label="Mover brazo – componente 4"]
+	"No hace nada" -> "Mover brazo – componente 4"
+	"Ensamblar componente 2" [label="Ensamblar componente 2"]
+	"Mover brazo – componente 4" -> "Ensamblar componente 2"
+	"No hace nada" [label="No hace nada"]
+	"Mover brazo – componente 5" [label="Mover brazo – componente 5"]
+	"No hace nada" -> "Mover brazo – componente 5"
+	"Ensamblar componente 2" [label="Ensamblar componente 2"]
+	"Mover brazo – componente 5" -> "Ensamblar componente 2"
+	"Ensamblar componente 2" [label="Ensamblar componente 2"]
+	"Mover brazo – componente 6" [label="Mover brazo – componente 6"]
+	"Ensamblar componente 2" -> "Mover brazo – componente 6"
+	"Mover brazo – componente 3" [label="Mover brazo – componente 3"]
+	"Mover brazo – componente 6" -> "Mover brazo – componente 3"
+}

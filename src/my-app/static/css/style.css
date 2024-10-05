@@ -68,3 +68,7 @@ img{
     margin-right: 10px;
     border-radius: 8px;
 }
+
+table, th, td{
+    border: 1px solid black;
+}

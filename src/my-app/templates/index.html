@@ -4,22 +4,23 @@
 {% block content %}
     <h1>Inicio</h1>
     <div>
-        {% if name %}
-      <p>Hola {{ name | upper }}</p>
-      {% else %}
-      <p>Bienvenido usuario</p>
-      {% endif %}
+      
       <!-- <h2>Lista de amigos</h2>
       <ul>
         {% for friend in friends | reverse %}
           <li>{{ friend }}</li>
         {% endfor %}
       </ul> -->
+      <p> Bienvenido a nuestro sistema de simulación de ensamblado de productos</p>
 
       <p> La fecha de hoy es {{date | today}}</p>
       <!-- <p>La frase repetida es: {{repeat("Hola ", 3) }}</p> -->
 
-      <p> Bienvenido a nuestro sistema de simulación de ensamblado de productos</p>
+      <ol type="1">
+        <li>Para empezar, cargue un archivo XML.</li>
+        <li>En 'reportes' puede simular la elaboración de un producto.</li>
+        <li>Si lo desea en 'reportes' puede generar el html de la simulación</li>
+      </ol>
       <br>
 
       <button onclick="window.location.href='/archivo'">Cargar archivo</button>

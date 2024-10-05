@@ -1,12 +1,15 @@
 from flask import Flask, render_template, url_for, request, redirect, session
 import xml.etree.ElementTree as ET
 import os
+import graphviz
 from werkzeug.utils import secure_filename
 
 from listaEnlazada import ListaEnlazada
 from Maquina import Maquina
 from Producto import Producto
 from Resultado import ResultadoP, ResultadoM, Resultado
+from TiempoEnLinea import TiempoEnLinea
+
 
 
 app = Flask(__name__)
@@ -70,192 +73,116 @@ def cargarArchivo(filePath):
             maquina.agregarProducto(producto)
             productosGlobal.append(producto)
             
+
+def serializarLista(lista):
+    resultado = "" 
+    current = lista.head
+    while current:
+        resultado += current.data.data + ":"
+        nodo = current.data.lineas.head
+        while nodo:
+            resultado += nodo.data
+            if nodo.next:
+                resultado += ","
+                
+            nodo = nodo.next
+        resultado += "|"
+        current = current.next
+    return resultado.strip("|")
+
+def deserializarLista(cadena):
+    lista = ListaEnlazada()
+    i = 0
+    while i < len(cadena):
+        dato = ""
+        while i < len(cadena) and cadena[i] != ":": 
+            dato += cadena[i]
+            i += 1
+        i += 1
+        
+        lineas = ListaEnlazada()
+        linea = ""
+        while i < len(cadena) and cadena[i] != "|":
+            if cadena[i] == ",":
+                lineas.append(linea)
+                linea = ""
+            else:
+                linea += cadena[i]
+            i += 1
+         
+        if linea:
+            lineas.append(linea)
+        i += 1
+             
+        resultado = Resultado(dato, lineas)
+        lista.append(resultado)
+    
+    return lista
+
             
 
-def simularProducto(maquina, producto, tiempo):
-    # resultados = ListaEnlazada() 
-    # cantidadLineas = 0
-    # tiempoTotal = 0
+
+                    
+def calcularTiempo(producto, cantidadLineas):
+    tiempoLineas = ListaEnlazada()
     
-    # for maquinas in maquinasGlobal:
-    #     if maquinas.nombre == maquina:
-    instrucciones = ListaEnlazada()
-    cantidadLineas = 0
-    tiempoTotal = 0
-    
-    resultados = ListaEnlazada()
-    
-    xml_content = session['xml_content']
-    root = ET.fromstring(xml_content)
+    for i in range(cantidadLineas):
+        tiempoLineas.append(TiempoEnLinea(i + 1))
         
-    for maquinas in root.findall('Maquina'):
-        nombre_maquina = maquinas.find('NombreMaquina').text
-        if nombre_maquina == maquina:
-            num_lineas = int(maquinas.find('CantidadLineasProduccion').text)
-            tiempoTotal = int(maquinas.find('TiempoEnsamblaje').text)
-            print(f"Máquina encontrada: {nombre_maquina} con {num_lineas} líneas de producción.")
-            print(f"Tiempo de ensamblaje: {tiempoTotal}")
-
-            for productos in maquinas.find('ListadoProductos').findall('Producto'):
-                nombre_producto = productos.find('nombre').text
-                if nombre_producto == producto:
-                    elaboracion = productos.find('elaboracion').text.strip()
-                    print(f"Producto encontrado: {nombre_producto} con elaboración: {elaboracion}")
-                    # print(f"componentes: {productos.componentes}")
-                    
-                    
-                    
-                    instrucciones = ListaEnlazada()
-                    step = ""
-                    for char in elaboracion:
-                        if char.isspace():
-                            if step:
-                                instrucciones.append(step)
-                                step = ""                  
-                        else:
-                            step += char
-                    if step:
-                        instrucciones.append(step)
-                        
-                    brazo = ListaEnlazada()
-                    
-                    for _ in range(cantidadLineas):
-                        brazo.append(0)
-                        
-                    segundo = 1
-                    ensamblarLineas = ListaEnlazada()
-                    
-                    for _ in range(cantidadLineas):
-                        ensamblarLineas.append(0)
-                        
-                    while True:
-                        tiempoFila = Resultado(f"{segundo}", ListaEnlazada())
-                        
-                        for _ in range(cantidadLineas):
-                            tiempoFila.lineas.append("No hacer nada")
-                            
-                        ensamblajeRealizado = False
-                        ensamble = False
-                        
-                        for i in range(ensamblarLineas.longitud()):
-                            if ensamblarLineas.obtener(i).data > 0:
-                                ensamble = True
-                                break
-                            
-                        for linea in range(cantidadLineas):
-                            if ensamblarLineas.obtener(linea).data > 0:
-                                tiempoFila.lineas.actualizar(linea, f"Ensamblar componente {brazo.obtener(linea).data}")
-                                ensamblarLineas.obtener(linea).data -= 1
-                                ensamble = True
-                            else:
-                                currentInstruction = None
-                                
-                                for i in range(instrucciones.longitud()):
-                                    if instrucciones.obtener(i).data != "COMPLETED":
-                                        data = instrucciones.obtener(i).data
-                                        
-                                        lineaInstruccion = " "
-                                        compInstruccion = " "
-                                        found_C = False
-                                        #* Recorre la instrucción para obtener la línea y el componente
-                                        for char in data[1: ]:
-                                            if char == "C":
-                                                found_C = True
-                                            elif not found_C:
-                                                lineaInstruccion += char
-                                            else:
-                                                compInstruccion += char 
-                                                
-                                        #* Convierte a entero
-                                        lineaInstruccion = int(lineaInstruccion)
-                                        compInstruccion = int(compInstruccion)
-                                        
-                                        #* Verifica si la línea es igual a la de la máquina
-                                        if lineaInstruccion -1 == linea:
-                                            currentInstruction = instrucciones.obtener(i)
-                                            indexInstruction = i
-                                            break
-                                    
-                                #* Si hay una instrucción    
-                                if currentInstruction:
-                                    data = currentInstruction.data
-                                    componenteActual = " "
-                                    found_C = False
-                                    
-                                    for char in data[1: ]:
-                                        if char == "C":
-                                            found_C = True
-                                        elif not found_C:
-                                            componenteActual += char
-                                    #* Convierte a entero
-                                    componenteActual = int(componenteActual)
-
-                                    brazoActual = brazo.obtener(linea).data
-                                    
-                                    if ensamble and brazoActual == componenteActual:
-                                        tiempoFila.lineas.actualizar(linea, "No hace nada")
-                                    elif brazoActual < componenteActual:
-                                        brazoActual += 1
-                                        tiempoFila.lineas.actualizar(linea, f"Mover brazo - componente {brazoActual}")
-                                        brazo.obtener(linea).data = brazoActual
-                                        
-                                    elif brazoActual > componenteActual:
-                                        tiempoFila.lineas.actualizar(linea, f"No hace nada")
-                                        
-                                    elif brazoActual == componenteActual and not ensamblajeRealizado and not ensamble:
-                                        #* verifica el turno
-                                        canAssemble = True
-                                        for j in range(indexInstruction):
-                                            if instrucciones.obtener(j).data != "COMPLETED":
-                                                canAssemble = False
-                                                break
-                                        
-                                        if canAssemble:
-                                            tiempoFila.lineas.actualizar(linea, f"Ensamblar componente {componenteActual}")
-                                            instrucciones.obtener(indexInstruction).data = "COMPLETED"
-                                            ensamblajeRealizado = True #* marca que se ensamblo
-                                            ensamble = True #* marca que se esta ensamblando
-                                            ensamblarLineas.obtener(linea).data = tiempoTotal - 1 #* establece el tiempo
-                        
-                        #* actualiza las lineas
-                        if ensamblarLineas:
-                            for linea in range(cantidadLineas):
-                                if tiempoFila.lineas.obtener(linea).data == "No hacer nada":
-                                    tiempoFila.lineas.actualizar(linea, "No hacer nada")
-                                    
-                        resultados.append(tiempoFila)
-                        
-                        allCompleted = True
-                        for i in range(instrucciones.longitud()):
-                            if instrucciones.obtener(i)!= "COMPLETED":
-                                allCompleted = False
-                                break
-                        if allCompleted:
-                            break
-                        
-                        if tiempo is not None and segundo >= tiempo:
-                            break
-                        
-                        segundo += 1 #* incrementa el tiempo en 1 s
-                    
-                    #* se asegura q el últmo ensamblaje se haya registrado
-                    if ensamblajeRealizado:
-                        for linea in range(cantidadLineas):
-                            if ensamblarLineas.obtener(linea).data == 0 and tiempoFila.lineas.obtener(linea).data.startswith("Ensamblar componente"):
-                                ensamblarLineas.obtener(linea).data = tiempoTotal - 1
-                        
-                                    
-                                    
-                    
-    tablasEnsamblaje.append((producto, resultados))  
+    nodo = producto.componentes.head
+    while nodo is not None:
+        nodoTiempo = tiempoLineas.obtener(nodo.data.linea - 1)
+        if nodoTiempo is None:
+            raise ValueError("nodoTiempo is None, check the index.")
+        if nodoTiempo.data is None:
+            nodoTiempo.data = 0  # or some appropriate default before incrementing()
+            
+        nodo = nodo.next
+        
+    maxTiempo = 0
+    nodoTiempo = tiempoLineas.head
+    while nodoTiempo is not None:
+        if nodoTiempo.data.tiempo > maxTiempo:
+            maxTiempo = nodoTiempo.data.tiempo
+        nodoTiempo = nodoTiempo.next
+        
+    return maxTiempo
+      
+def mostrarResultado(maquinas):
+    resultados = ListaEnlazada()
+    nodeMaquina = maquinas.head
+    while nodeMaquina is not None:
+        maquina = nodeMaquina.data
+        maquinaInfo = ResultadoM(maquina.nombre, maquina.cantidadLineas)
+        nodeProducto = maquina.productos.head
+        while nodeProducto is not None:
+            producto = nodeProducto.data
+            tiempoTotal = calcularTiempo(producto, maquina.cantidadLineas)
+            productoInfo = ResultadoP(producto.nombre, producto.componentes.longitud(), tiempoTotal)
+            maquinaInfo.agregarProducto(productoInfo)
+            nodeProducto = nodeProducto.next
+        resultados.append(maquinaInfo)
+        nodeMaquina = nodeMaquina.next
+    return resultados
+        
+def imprimirResultado(resultados):
+    nodeMaquina = resultados.head
+    while nodeMaquina is not None:
+        maquina = nodeMaquina.data
+        print(f"Maquina: {maquina.nombre}")
+        print(f"Cantidad lineas: {maquina.cantidadLineas}")
+        nodeProducto = maquina.productos.head
+        
+        while nodeProducto is not None:
+            producto = nodeProducto.data
+            print(f"Producto: {producto.nombre}")
+            print(f"Componentes: {producto.cantidadComponentes}")
+            nodeProducto = nodeProducto.next
+            
+        nodeMaquina = nodeMaquina.next
     
-    # session['resultados'] =
-                    
-    return instrucciones  # Retorna las instrucciones                    
-                    
-                    
 
-
+        
 
 #* Filtros 
 @app.add_template_filter
@@ -383,6 +310,7 @@ def reportes():
     productos = None  #* Inicializa como None para manejar el caso de que no se seleccione ninguna máquina
     maquinaSeleccionada = None #* Inicializa como None para manejarel caso de que no se seleccione ninguna máquina
     instrucciones = ListaEnlazada()
+    resultados = None
     
     
     if request.method == 'POST':
@@ -402,62 +330,296 @@ def reportes():
         
         if maquinaSeleccionada and request.method == 'POST' and productos:
             for producto in productos:
-                instrucciones = simularProducto(maquinaSeleccionada, producto.nombre, productoTiempo)
+                resultados = mostrarResultado(maquinasGlobal)
+                imprimirResultado(resultados)
+                resultadosGlobal = resultados
+                productos = productosGlobal
 
+    
+    
     return render_template(
         'reportes.html', 
         maquinas=maquinasGlobal, 
+        resultados = resultados,
         productos=productos, 
         maquinaSeleccionada = maquinaSeleccionada, 
         instrucciones = instrucciones, 
         tablasEnsamblaje = tablasEnsamblaje
+        
     )
 
-@app.route('/producto_seleccionado', methods=['POST'])
+@app.route('/producto_seleccionado', methods=['POST', 'GET'])
 def producto_seleccionado():
     productoMaquina = request.form.get('maquina')
     productoNombre = request.form.get('producto')
     productoTiempo = request.form.get('tiempo')
     
-    #* valida el tiempo 
+    maquina_encontrada = None #* carga informacion de maquinas para obtener tiempo
+    for maquina in maquinasGlobal: 
+        if maquina.nombre == productoMaquina:
+            maquina_encontrada = maquina
+            break
+        
+    #* valida el tiempo, si no es ingresado usa el tiempo de la máquina
     if productoTiempo and productoTiempo.isdigit():
         productoTiempo = int(productoTiempo)
         session['productoTiempo'] = productoTiempo
     else:
-        productoTiempo = None
+        productoTiempo = maquina_encontrada.tiempoProd if maquina_encontrada else None
+        
+    if productoTiempo is None:
+        return "No se ha ingresado un tiempo de simulación.", 400
+        
     print(f"Nombre maquina: {productoMaquina}")
     print("si aparece nombre de maquina arriba ^^^^^, esta bien")
     #* crea lista de resultados
-    
+    resultados = ListaEnlazada()
     instrucciones = ListaEnlazada()
     
-    # print(f"Producto seleccionado: {productoNombre}")
-    # print(f"Tiempo seleccionado: {productoTiempo}")
     
-    # simularProducto(productoMaquina, productoNombre, productoTiempo)
+    xml_content = session['xml_content']
+    root = ET.fromstring(xml_content)
 
+    cantidadLineas = 0  #* Inicializar cantidadLineas
+    tiempo_ensamblaje = 0  #* Inicializar tiempo de ensamblaje
+    for maquina in root.findall('Maquina'):
+        nombreMaquina = maquina.find('NombreMaquina').text
+        if nombreMaquina == productoMaquina:
+            cantidadLineas = int(maquina.find('CantidadLineasProduccion').text)
+            tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
+            print(f"Máquina encontrada: {nombreMaquina} con {cantidadLineas} líneas de producción.")
+            print(f"Tiempo de ensamblaje: {tiempo_ensamblaje}")
+
+            for producto in maquina.find('ListadoProductos').findall('Producto'):
+                nombre_producto = producto.find('nombre').text
+                if nombre_producto == productoNombre:
+                    elaboracion = producto.find('elaboracion').text.strip()
+                    print(f"Producto encontrado: {nombre_producto} con elaboración: {elaboracion}")
+                    
+                    # Extraer las instrucciones correctamente sin usar split
+                    instrucciones = ListaEnlazada()
+                    paso = ""
+                    for char in elaboracion:
+                        if char.isspace():
+                            if paso:
+                                instrucciones.append(paso)
+                                paso = ""
+                        else:
+                            paso += char
+                    if paso:
+                        instrucciones.append(paso)
+                                
+                    brazo = ListaEnlazada()
+                    for _ in range(cantidadLineas):
+                        brazo.append(0)
+                    
+                    segundo = 1
+                    ensamblando_lineas = ListaEnlazada()  #* se inicializa el ensamble
+                    for _ in range(cantidadLineas):
+                        ensamblando_lineas.append(0)
+                    
+                    while True:
+                        filaTiempo = Resultado(f"{segundo}", ListaEnlazada())
+                        for _ in range(cantidadLineas):
+                            filaTiempo.lineas.append("No hacer nada")
+                        
+                        ensamblaje_realizado = False
+                        ensamblando = False
+                        for i in range(ensamblando_lineas.longitud()):
+                            if ensamblando_lineas.obtener(i).data > 0:
+                                ensamblando = True
+                                break
+                        
+                        for linea in range(cantidadLineas):
+                            if ensamblando_lineas.obtener(linea).data > 0:
+                                filaTiempo.lineas.actualizar(linea, f"Ensamblar componente {brazo.obtener(linea).data}")
+                                ensamblando_lineas.obtener(linea).data -= 1
+                                ensamblando = True
+                            else:
+                                instruccion_actual = None
+                                for i in range(instrucciones.longitud()):
+                                    if instrucciones.obtener(i).data != "COMPLETED":
+                                        dato = instrucciones.obtener(i).data
+                                        linea_instruccion = ""
+                                        componente_instruccion = ""
+                                        found_C = False
+                                        for char in dato[1:]:
+                                            if char == 'C':
+                                                found_C = True
+                                            elif not found_C:
+                                                linea_instruccion += char
+                                            else:
+                                                componente_instruccion += char
+                                        linea_instruccion = int(linea_instruccion)
+                                        componente_instruccion = int(componente_instruccion)
+                                        if linea_instruccion - 1 == linea:
+                                            instruccion_actual = instrucciones.obtener(i)
+                                            instruccion_index = i
+                                            break
+                                
+                                if instruccion_actual:
+                                    dato = instruccion_actual.data
+                                    componente_actual = ""
+                                    found_C = False
+                                    for char in dato[1:]:
+                                        if char == 'C':
+                                            found_C = True
+                                        elif found_C:
+                                            componente_actual += char
+                                    componente_actual = int(componente_actual)
+                                    brazoActual = brazo.obtener(linea).data
+                                    
+                                    if ensamblando and brazoActual == componente_actual:
+                                        filaTiempo.lineas.actualizar(linea, "No hace nada")
+                                    elif brazoActual < componente_actual:
+                                        brazoActual += 1
+                                        filaTiempo.lineas.actualizar(linea, f"Mover brazo – componente {brazoActual}")
+                                        brazo.obtener(linea).data = brazoActual
+                                    elif brazoActual > componente_actual:
+                                        
+                                        filaTiempo.lineas.actualizar(linea, "No hace nada")
+                                    elif brazoActual == componente_actual and not ensamblaje_realizado and not ensamblando:
+                                        #* verifica el turno de la instruccion
+                                        can_assemble = True
+                                        for j in range(instruccion_index):
+                                            if instrucciones.obtener(j).data != "COMPLETED":
+                                                can_assemble = False
+                                                break
+                                        
+                                        if can_assemble:
+                                            filaTiempo.lineas.actualizar(linea, f"Ensamblar componente {componente_actual}")
+                                            instrucciones.obtener(instruccion_index).data = "COMPLETED"
+                                            ensamblaje_realizado = True
+                                            ensamblando = True  #* marca q una linea esta ensamblandose
+                                            ensamblando_lineas.obtener(linea).data = tiempo_ensamblaje - 1  #* establece la linea
+                        
+                        #* si no se esta ensamblando, se marca como no hacer nada
+                        if ensamblando:
+                            for linea in range(cantidadLineas):
+                                if filaTiempo.lineas.obtener(linea).data == "No hacer nada":
+                                    filaTiempo.lineas.actualizar(linea, "No hace nada")
+                        
+                        resultados.append(filaTiempo)
+                        
+                        all_completed = True
+                        for i in range(instrucciones.longitud()):
+                            if instrucciones.obtener(i).data != "COMPLETED":
+                                all_completed = False
+                                break
+                        
+                        if all_completed:
+                            break
+                        
+                        if productoTiempo is not None and segundo >= productoTiempo:
+                            break
+                        
+                        segundo += 1  #* incrementar el tiempo en 1 segundo
+
+                    #* Asegurarse de que el último componente también reciba el tiempo de ensamblaje
+                    if ensamblaje_realizado:
+                        for linea in range(cantidadLineas):
+                            if ensamblando_lineas.obtener(linea).data == 0 and filaTiempo.lineas.obtener(linea).data.startswith("Ensamblar componente"):
+                                ensamblando_lineas.obtener(linea).data = tiempo_ensamblaje - 1
+
+    # # Mostrar los pasos de la simulación en la consola
+    # print("Pasos de la simulación:")
+    # current = resultados.head
+    # while current:
+    #     print(current.data)
+    #     current = current.next
+
+    # # Imprimir las instrucciones pendientes en consola
+    # print("Instrucciones pendientes en cada segundo:")
+    # current = resultados.head
+    # while current:
+    #     pendientes = ListaEnlazada()
+    #     nodo_instruccion = instrucciones.head
+    #     while nodo_instruccion:
+    #         if nodo_instruccion.data != "COMPLETED":
+    #             pendientes.append(nodo_instruccion.data)
+    #         nodo_instruccion = nodo_instruccion.next
+    #     if pendientes.longitud() > 0:
+    #         print(f"Segundo {current.data.data}: {pendientes}")
+    #     current = current.next
+
+    #* Agregar la tabla de ensamblaje a la lista de tablas
+    tablasEnsamblaje.append((productoNombre, resultados))
+
+    # Serializar los resultados y almacenarlos en la sesión
+    session['resultados'] = serializarLista(resultados)
+
+    print("Simulación completada. Resultados generados.")
+    return render_template('reportes.html', productos=productosGlobal, resultados=resultados, maquinas=maquinasGlobal, num_lineas=cantidadLineas, tablas_ensamblaje=tablasEnsamblaje)
+    
+    
+    
+@app.route('/reporteProductos', methods=['GET'])
+def reporteProductos():
+    if request.method == 'POST':
+        #* se procesa el formulario
+        maquinaSeleccionada = request.form.get('maquina')
+        productoSeleccionado = request.form.get('producto')
         
-    #* Crea lista de resultados
-    if productoNombre and productoMaquina:
-        print(f"Producto seleccionado: {productoNombre}")
-        print(f"Tiempo seleccionado: {productoTiempo}")
-        instrucciones = simularProducto(productoMaquina, productoNombre, productoTiempo)
-    else:
-        print("Faltan datos necesarios para simular el producto.")
         
-    if instrucciones:
-        tablasEnsamblaje.append((productoNombre, instrucciones))
-    
-    return redirect(url_for('reportes'))  # Redirigir después de procesar
-    
-@app.route('/reporte-html/<producto>', methods=['GET'])
-def reporteEnHtml(producto):
-    for tabla in tablasEnsamblaje:
-        if tabla[0] == producto:
-            return render_template('reporte.html', producto = producto, instrucciones = tabla[1])
-    
-    return redirect(url_for('reportes'))
+
+        return render_template('reporteProductos.html', maquinas=maquinasGlobal, 
+                               maquinaSeleccionada=maquinaSeleccionada, 
+                               productos=productoSeleccionado, 
+                               tablasEnsamblaje=tablasEnsamblaje)
+
+    return render_template('reportes.html', maquinas=maquinasGlobal)
 
 
+@app.route('/generarTda', methods=['GET'])
+def generarTda():
+    productoMaquina = request.args.get('maquina')
+    productoNombre = request.args.get('producto')
     
+    print(f"Producto seleccionado: {productoNombre} de la máquina {productoMaquina}")
     
+    xml_content = session['xml_content']
+    if not xml_content:
+        return "No se ha cargado un archivo XML.", 400
+    
+    root = ET.fromstring(xml_content)
+    
+    for maquina in root.findall('Maquina'):
+        nombreMaquina = maquina.find('NombreMaquina').text
+        if nombreMaquina == productoMaquina:
+            cantidadLineas = int(maquina.find('CantidadLineasProduccion').text)
+            tiempo_ensamblaje = int(maquina.find('TiempoEnsamblaje').text)
+            print(f"Máquina encontrada: {nombreMaquina} con {cantidadLineas} líneas de producción.")
+            print(f"Tiempo de ensamblaje: {tiempo_ensamblaje}")
+
+            for producto in maquina.find('ListadoProductos').findall('Producto'):
+                nombre_producto = producto.find('nombre').text
+                if nombre_producto == productoNombre:
+                    elaboracion = producto.find('elaboracion').text.strip()
+                    
+                    dot = graphviz.Digraph(comment='Diagrama de ensamblaje')
+                    
+                    #* añade los nodos
+                    pasos = elaboracion.split()
+                    prePasoLabel = None
+                    
+                    for paso in pasos:
+                        if paso.startswith('L') and 'C' in paso:
+                            paso_label = paso
+                            dot.node(paso_label, label=paso_label)
+                            if prePasoLabel:
+                                dot.edge(prePasoLabel, paso_label)
+                            prePasoLabel = paso_label
+                        else:
+                            if prePasoLabel:
+                                dot.node(paso, label=paso)
+                                dot.edge(prePasoLabel, paso)
+                                prePasoLabel = paso
+                                
+                    # * genera el gráfico
+                    graph_path = 'static/grafico_tda'
+                    dot.render(graph_path, format='png')
+                    
+                    return f"Gráfico generado: <img src='/{graph_path}.png' alt='Grafico de TDA'>"
+    
+    return "No se encontró la máquina o el producto especificado.", 400
+                    

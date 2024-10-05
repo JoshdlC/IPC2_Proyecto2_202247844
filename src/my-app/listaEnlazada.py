@@ -23,7 +23,7 @@ class ListaEnlazada:
         contador = 0
         while current:
             if contador == index:
-                return current.data
+                return current
             contador += 1
             current = current.next
 
@@ -66,4 +66,6 @@ class ListaEnlazada:
                 return
             contador += 1
             current = current.next
+            
+    
 
